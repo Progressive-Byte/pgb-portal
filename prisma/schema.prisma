@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
+enum UserStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String?
+  role         Role       @default(EMPLOYEE)
+  title        String?
+  status       UserStatus @default(INVITED)
+  joinDate     DateTime   @default(now()) @db.Date
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  inviteTokens        InviteToken[]
+  leaveBalances        LeaveBalance[]
+  leaveRequests        LeaveRequest[]  @relation("LeaveRequestOwner")
+  reviewedLeaveRequests LeaveRequest[] @relation("LeaveRequestReviewer")
+  taskReports          TaskReport[]
+
+  @@index([status])
+}
+
+model InviteToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model LeaveType {
+  id               String   @id @default(cuid())
+  name             String   @unique
+  defaultAnnualDays Int
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  leaveBalances LeaveBalance[]
+  leaveRequests LeaveRequest[]
+}
+
+model LeaveBalance {
+  id             String   @id @default(cuid())
+  userId         String
+  leaveTypeId    String
+  year           Int
+  allocatedDays  Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, leaveTypeId, year])
+}
+
+model LeaveRequest {
+  id          String              @id @default(cuid())
+  userId      String
+  leaveTypeId String
+  startDate   DateTime            @db.Date
+  endDate     DateTime            @db.Date
+  daysCount   Int
+  reason      String
+  status      LeaveRequestStatus  @default(PENDING)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  user      User      @relation("LeaveRequestOwner", fields: [userId], references: [id], onDelete: Cascade)
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+  reviewer  User?     @relation("LeaveRequestReviewer", fields: [reviewedBy], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model PolicyDocument {
+  id        String   @id @default(cuid())
+  title     String
+  category  String
+  embedUrl  String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TaskType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  taskReports TaskReport[]
+}
+
+model ProjectProduct {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  taskReports TaskReport[]
+}
+
+model TaskReport {
+  id           String   @id @default(cuid())
+  userId       String
+  date         DateTime @db.Date
+  taskName     String
+  taskTypeId   String
+  projectId    String
+  hoursWorked  Decimal  @db.Decimal(5, 2)
+  notes        String
+  links        String[] @default([])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskType TaskType       @relation(fields: [taskTypeId], references: [id])
+  project  ProjectProduct @relation(fields: [projectId], references: [id])
+
+  @@index([userId, date])
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  name      String
+  createdAt DateTime @default(now())
+}
