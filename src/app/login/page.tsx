@@ -6,7 +6,8 @@ import { signIn } from "next-auth/react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const activated = searchParams.get("activated") === "1";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,6 +44,12 @@ function LoginForm() {
         <p className="mb-6 text-sm text-neutral-500">
           Sign in with your company account.
         </p>
+
+        {activated && (
+          <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+            Account activated. You can sign in now.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
