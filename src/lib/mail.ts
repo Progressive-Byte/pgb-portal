@@ -1,5 +1,18 @@
 import nodemailer from "nodemailer";
 
+const HTML_ESCAPES: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
+/** Escapes user-supplied text before interpolating it into an HTML email body. */
+export function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+}
+
 let transporter: nodemailer.Transporter | null = null;
 
 function getTransporter() {

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { sendMail } from "@/lib/mail";
+import { sendMail, escapeHtml } from "@/lib/mail";
 import { sendPumbleMessage } from "@/lib/pumble";
 
 type LeaveRequestForNotify = {
@@ -28,7 +28,7 @@ export async function notifyLeaveSubmitted(request: LeaveRequestForNotify) {
 
   const dateRange = formatDateRange(request.startDate, request.endDate);
   const subject = `Leave request from ${request.user.name}`;
-  const html = `<p>${request.user.name} submitted a ${request.leaveType.name} leave request for ${dateRange} (${request.daysCount} day${request.daysCount === 1 ? "" : "s"}).</p><p><strong>Reason:</strong> ${request.reason}</p><p>Review it in the portal under Leave Requests.</p>`;
+  const html = `<p>${escapeHtml(request.user.name)} submitted a ${escapeHtml(request.leaveType.name)} leave request for ${dateRange} (${request.daysCount} day${request.daysCount === 1 ? "" : "s"}).</p><p><strong>Reason:</strong> ${escapeHtml(request.reason)}</p><p>Review it in the portal under Leave Requests.</p>`;
 
   await Promise.all(
     admins.map((admin) => sendMail({ to: admin.email, subject, html })),
@@ -46,8 +46,8 @@ export async function notifyLeaveApproved(request: LeaveRequestForNotify) {
   await sendMail({
     to: request.user.email,
     subject: "Your leave request was approved",
-    html: `<p>Your ${request.leaveType.name} leave request for ${dateRange} has been approved.</p>${
-      request.reviewNote ? `<p><strong>Note:</strong> ${request.reviewNote}</p>` : ""
+    html: `<p>Your ${escapeHtml(request.leaveType.name)} leave request for ${dateRange} has been approved.</p>${
+      request.reviewNote ? `<p><strong>Note:</strong> ${escapeHtml(request.reviewNote)}</p>` : ""
     }`,
   });
 
@@ -63,8 +63,8 @@ export async function notifyLeaveRejected(request: LeaveRequestForNotify) {
   await sendMail({
     to: request.user.email,
     subject: "Your leave request was not approved",
-    html: `<p>Your ${request.leaveType.name} leave request for ${dateRange} was not approved.</p>${
-      request.reviewNote ? `<p><strong>Note:</strong> ${request.reviewNote}</p>` : ""
+    html: `<p>Your ${escapeHtml(request.leaveType.name)} leave request for ${dateRange} was not approved.</p>${
+      request.reviewNote ? `<p><strong>Note:</strong> ${escapeHtml(request.reviewNote)}</p>` : ""
     }`,
   });
 }

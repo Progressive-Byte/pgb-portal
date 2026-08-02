@@ -10,7 +10,13 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 const policySchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
   category: z.string().trim().min(1, "Category is required"),
-  embedUrl: z.string().trim().url("Enter a valid URL"),
+  embedUrl: z
+    .string()
+    .trim()
+    .url("Enter a valid URL")
+    .refine((url) => url.startsWith("https://") || url.startsWith("http://"), {
+      message: "URL must start with http:// or https://",
+    }),
   sortOrder: z.coerce.number().int(),
 });
 

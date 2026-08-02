@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guards";
-import { sendMail } from "@/lib/mail";
+import { sendMail, escapeHtml } from "@/lib/mail";
 import {
   generateInviteToken,
   inviteExpiryDate,
@@ -25,7 +25,7 @@ async function sendInviteEmail(name: string, email: string, token: string) {
   await sendMail({
     to: email,
     subject: "You're invited to PGB Portal",
-    html: `<p>Hi ${name},</p><p>You've been invited to PGB Portal. Click the link below to set your password and activate your account:</p><p><a href="${url}">${url}</a></p><p>This link expires in 7 days.</p>`,
+    html: `<p>Hi ${escapeHtml(name)},</p><p>You've been invited to PGB Portal. Click the link below to set your password and activate your account:</p><p><a href="${url}">${url}</a></p><p>This link expires in 7 days.</p>`,
   });
 }
 
