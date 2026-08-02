@@ -9,6 +9,7 @@ const EMPLOYEE_LINKS = [
 ];
 
 const ADMIN_LINKS = [
+  { href: "/admin", label: "Dashboard" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/leave-requests", label: "Leave Requests" },
   { href: "/admin/leave-types", label: "Leave Types" },
