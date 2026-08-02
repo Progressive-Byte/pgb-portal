@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { TopNav } from "@/components/top-nav";
+import { Sidebar } from "@/components/sidebar";
 
 export default async function AppLayout({
   children,
@@ -14,9 +14,11 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-1 flex-col bg-neutral-50">
-      <TopNav name={session.user.name ?? session.user.email ?? ""} role={session.user.role} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+    <div className="flex min-h-screen bg-neutral-50">
+      <Sidebar name={session.user.name ?? session.user.email ?? ""} role={session.user.role} />
+      <main className="min-w-0 flex-1 overflow-y-auto px-8 py-8">
+        <div className="mx-auto max-w-5xl">{children}</div>
+      </main>
     </div>
   );
 }

@@ -15,7 +15,7 @@ export default async function PolicyViewerPage({
   }
 
   return (
-    <div className="flex h-[calc(100vh-8.5rem)] flex-col space-y-4">
+    <div className="flex h-[calc(100vh-4rem)] flex-col space-y-4">
       <div>
         <Link href="/policies" className="text-sm text-neutral-500 hover:underline">
           ← Policies
