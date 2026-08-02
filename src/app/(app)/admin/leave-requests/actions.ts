@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-guards";
+import { notifyLeaveApproved, notifyLeaveRejected } from "@/lib/notifications/leave";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -18,7 +19,7 @@ async function reviewLeaveRequest(
     return { ok: false, error: "This request is no longer pending" };
   }
 
-  await prisma.leaveRequest.update({
+  const updated = await prisma.leaveRequest.update({
     where: { id },
     data: {
       status,
@@ -26,7 +27,14 @@ async function reviewLeaveRequest(
       reviewedAt: new Date(),
       reviewNote: note || null,
     },
+    include: { user: true, leaveType: true },
   });
+
+  if (status === "APPROVED") {
+    await notifyLeaveApproved(updated);
+  } else {
+    await notifyLeaveRejected(updated);
+  }
 
   revalidatePath("/admin/leave-requests");
   revalidatePath(`/admin/leave/${existing.userId}`);
