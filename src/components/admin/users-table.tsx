@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import {
   resendInvite,
@@ -95,6 +96,14 @@ export function UsersTable({ users }: { users: UserRow[] }) {
                           Revoke
                         </button>
                       </>
+                    )}
+                    {user.status !== "INVITED" && (
+                      <Link
+                        href={`/admin/leave/${user.id}`}
+                        className="rounded-md px-2 py-1 text-xs text-neutral-600 hover:bg-neutral-100"
+                      >
+                        Leave
+                      </Link>
                     )}
                     {user.status === "ACTIVE" && (
                       <button
