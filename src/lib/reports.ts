@@ -121,6 +121,7 @@ export type HoursOverview = {
   byEmployee: { userId: string; name: string; hours: number }[];
   byProject: { name: string; hours: number }[];
   byTaskType: { name: string; hours: number }[];
+  byDate: { date: string; hours: number }[];
   totalHours: number;
 };
 
@@ -133,6 +134,7 @@ export async function getHoursOverview(from: Date, to: Date): Promise<HoursOverv
   const byEmployee = new Map<string, { name: string; hours: number }>();
   const byProject = new Map<string, number>();
   const byTaskType = new Map<string, number>();
+  const byDate = new Map<string, number>();
   let totalHours = 0;
 
   for (const r of reports) {
@@ -145,6 +147,9 @@ export async function getHoursOverview(from: Date, to: Date): Promise<HoursOverv
 
     byProject.set(r.project.name, (byProject.get(r.project.name) ?? 0) + hours);
     byTaskType.set(r.taskType.name, (byTaskType.get(r.taskType.name) ?? 0) + hours);
+
+    const dateKey = r.date.toISOString().slice(0, 10);
+    byDate.set(dateKey, (byDate.get(dateKey) ?? 0) + hours);
   }
 
   return {
@@ -157,6 +162,9 @@ export async function getHoursOverview(from: Date, to: Date): Promise<HoursOverv
     byTaskType: [...byTaskType.entries()]
       .map(([name, hours]) => ({ name, hours }))
       .sort((a, b) => b.hours - a.hours),
+    byDate: [...byDate.entries()]
+      .map(([date, hours]) => ({ date, hours }))
+      .sort((a, b) => a.date.localeCompare(b.date)),
     totalHours,
   };
 }

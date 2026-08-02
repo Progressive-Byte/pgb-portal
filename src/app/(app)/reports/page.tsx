@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-guards";
+import { HoursTrendChart } from "@/components/charts/hours-trend-chart";
+import { HoursBarChart } from "@/components/charts/hours-bar-chart";
 
 export default async function ReportsPage() {
   const session = await requireUser();
@@ -19,6 +21,23 @@ export default async function ReportsPage() {
     byDate.set(key, list);
   }
 
+  const trendData = [...byDate.entries()]
+    .map(([date, dayReports]) => ({
+      date,
+      hours: dayReports.reduce((sum, r) => sum + Number(r.hoursWorked), 0),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-30);
+
+  const byProject = new Map<string, number>();
+  for (const report of reports) {
+    const hours = Number(report.hoursWorked);
+    byProject.set(report.project.name, (byProject.get(report.project.name) ?? 0) + hours);
+  }
+  const byProjectData = [...byProject.entries()]
+    .map(([name, hours]) => ({ name, hours }))
+    .sort((a, b) => b.hours - a.hours);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -33,6 +52,27 @@ export default async function ReportsPage() {
           Log today&apos;s tasks
         </Link>
       </div>
+
+      {reports.length > 0 && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">
+              Hours per day
+            </h2>
+            <div className="rounded-lg border border-neutral-200 bg-white p-4">
+              <HoursTrendChart data={trendData} />
+            </div>
+          </div>
+          <div>
+            <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">
+              By project
+            </h2>
+            <div className="rounded-lg border border-neutral-200 bg-white p-4">
+              <HoursBarChart data={byProjectData} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         {[...byDate.entries()].map(([date, dayReports]) => {

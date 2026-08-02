@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getHoursOverview, getMissingReportSummary } from "@/lib/reports";
+import { HoursBarChart } from "@/components/charts/hours-bar-chart";
+import { HoursTrendChart } from "@/components/charts/hours-trend-chart";
+import { EmployeeHoursChart } from "@/components/charts/employee-hours-chart";
 
 function startOfMonth(d: Date) {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
@@ -69,25 +72,22 @@ export default async function AdminReportsOverviewPage({
         <p className="mt-1 text-3xl font-semibold text-neutral-900">{overview.totalHours}</p>
       </div>
 
+      <div>
+        <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">
+          Hours per day
+        </h2>
+        <div className="rounded-lg border border-neutral-200 bg-white p-4">
+          <HoursTrendChart data={overview.byDate} />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div>
           <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">
             By employee
           </h2>
-          <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
-            {overview.byEmployee.map((e) => (
-              <Link
-                key={e.userId}
-                href={`/admin/reports/${e.userId}`}
-                className="flex items-center justify-between border-b border-neutral-100 px-4 py-2 text-sm last:border-b-0 hover:bg-neutral-50"
-              >
-                <span className="text-neutral-900">{e.name}</span>
-                <span className="text-neutral-500">{e.hours}h</span>
-              </Link>
-            ))}
-            {overview.byEmployee.length === 0 && (
-              <p className="px-4 py-4 text-center text-sm text-neutral-400">No data.</p>
-            )}
+          <div className="rounded-lg border border-neutral-200 bg-white p-4">
+            <EmployeeHoursChart data={overview.byEmployee} />
           </div>
         </div>
 
@@ -95,19 +95,8 @@ export default async function AdminReportsOverviewPage({
           <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">
             By project
           </h2>
-          <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
-            {overview.byProject.map((p) => (
-              <div
-                key={p.name}
-                className="flex items-center justify-between border-b border-neutral-100 px-4 py-2 text-sm last:border-b-0"
-              >
-                <span className="text-neutral-900">{p.name}</span>
-                <span className="text-neutral-500">{p.hours}h</span>
-              </div>
-            ))}
-            {overview.byProject.length === 0 && (
-              <p className="px-4 py-4 text-center text-sm text-neutral-400">No data.</p>
-            )}
+          <div className="rounded-lg border border-neutral-200 bg-white p-4">
+            <HoursBarChart data={overview.byProject} />
           </div>
         </div>
 
@@ -115,19 +104,8 @@ export default async function AdminReportsOverviewPage({
           <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">
             By task type
           </h2>
-          <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
-            {overview.byTaskType.map((t) => (
-              <div
-                key={t.name}
-                className="flex items-center justify-between border-b border-neutral-100 px-4 py-2 text-sm last:border-b-0"
-              >
-                <span className="text-neutral-900">{t.name}</span>
-                <span className="text-neutral-500">{t.hours}h</span>
-              </div>
-            ))}
-            {overview.byTaskType.length === 0 && (
-              <p className="px-4 py-4 text-center text-sm text-neutral-400">No data.</p>
-            )}
+          <div className="rounded-lg border border-neutral-200 bg-white p-4">
+            <HoursBarChart data={overview.byTaskType} />
           </div>
         </div>
       </div>
