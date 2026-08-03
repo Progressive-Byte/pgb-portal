@@ -163,3 +163,22 @@ model Holiday {
   name      String
   createdAt DateTime @default(now())
 }
+
+// Singleton row (id = "singleton"). Friday is always off; Saturday alternates,
+// with `anchorOffSaturday` being one known Saturday that is off — every Saturday
+// an even number of weeks from it is also off, odd is a working Saturday.
+model WeekendConfig {
+  id                String   @id @default("singleton")
+  anchorOffSaturday DateTime @db.Date
+  updatedAt         DateTime @updatedAt
+}
+
+// Per-date override of the computed Saturday pattern (e.g. a specific working
+// Saturday made off, or an off Saturday called back in for a deadline).
+model WeekendException {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  isOff     Boolean
+  note      String?
+  createdAt DateTime @default(now())
+}

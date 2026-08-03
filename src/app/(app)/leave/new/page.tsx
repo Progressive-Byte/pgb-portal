@@ -1,12 +1,19 @@
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-guards";
+import { getLeaveBalanceSummary } from "@/lib/leave";
 import { LeaveRequestForm } from "@/components/leave/leave-request-form";
 
 export default async function NewLeaveRequestPage() {
-  const leaveTypes = await prisma.leaveType.findMany({
-    where: { isActive: true },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
+  const session = await requireUser();
+
+  const [leaveTypes, balances] = await Promise.all([
+    prisma.leaveType.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    getLeaveBalanceSummary(session.user.id, new Date().getFullYear()),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -17,7 +24,7 @@ export default async function NewLeaveRequestPage() {
         </p>
       </div>
 
-      <LeaveRequestForm leaveTypes={leaveTypes} />
+      <LeaveRequestForm leaveTypes={leaveTypes} balances={balances} />
     </div>
   );
 }

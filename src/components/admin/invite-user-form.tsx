@@ -29,7 +29,7 @@ export function InviteUserForm() {
     <form
       ref={formRef}
       action={handleSubmit}
-      className="grid grid-cols-1 gap-3 rounded-lg border border-neutral-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-5 lg:items-end"
+      className="grid grid-cols-1 gap-3 rounded-lg border border-neutral-200 bg-white shadow-sm p-4 sm:grid-cols-2 lg:grid-cols-5 lg:items-end"
     >
       <div>
         <label className="block text-sm font-medium text-neutral-700">Name</label>
@@ -79,7 +79,7 @@ export function InviteUserForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+          className="w-full rounded-md bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
         >
           {isPending ? "Sending…" : "Send invite"}
         </button>

@@ -21,7 +21,7 @@ export default async function PoliciesPage() {
       </div>
 
       {policies.length === 0 && (
-        <p className="rounded-lg border border-neutral-200 bg-white px-4 py-6 text-center text-neutral-400">
+        <p className="rounded-lg border border-neutral-200 bg-white shadow-sm px-4 py-6 text-center text-neutral-400">
           No policy documents have been added yet.
         </p>
       )}
@@ -31,7 +31,7 @@ export default async function PoliciesPage() {
           <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">
             {category}
           </h2>
-          <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+          <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
             {docs.map((doc) => (
               <Link
                 key={doc.id}

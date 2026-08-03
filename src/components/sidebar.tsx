@@ -20,6 +20,7 @@ const ADMIN_SECTIONS: NavSection[] = [
     title: "Leave",
     links: [
       { href: "/admin/leave-requests", label: "Leave Requests" },
+      { href: "/admin/leave", label: "Leave Overview" },
       { href: "/admin/leave-types", label: "Leave Types" },
     ],
   },
@@ -30,6 +31,7 @@ const ADMIN_SECTIONS: NavSection[] = [
       { href: "/admin/task-types", label: "Task Types" },
       { href: "/admin/projects", label: "Projects" },
       { href: "/admin/holidays", label: "Holidays" },
+      { href: "/admin/weekends", label: "Weekends" },
     ],
   },
   { title: "Content", links: [{ href: "/admin/policies", label: "Policies" }] },
@@ -47,7 +49,10 @@ export function Sidebar({
 
   return (
     <aside className="flex h-screen w-64 flex-shrink-0 flex-col border-r border-neutral-200 bg-white">
-      <Link href={homeHref} className="border-b border-neutral-200 px-5 py-4">
+      <Link href={homeHref} className="flex items-center gap-2.5 border-b border-neutral-200 px-5 py-4">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-sm font-bold text-white">
+          P
+        </span>
         <span className="text-lg font-semibold text-neutral-900">PGB Portal</span>
       </Link>
 

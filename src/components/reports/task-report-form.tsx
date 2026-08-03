@@ -119,7 +119,7 @@ export function TaskReportForm({
 
   return (
     <div className="max-w-3xl space-y-4">
-      <div className="rounded-lg border border-neutral-200 bg-white p-4">
+      <div className="rounded-lg border border-neutral-200 bg-white shadow-sm p-4">
         <label className="block text-sm font-medium text-neutral-700">Date</label>
         <input
           type="date"
@@ -141,7 +141,7 @@ export function TaskReportForm({
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {entries.map((entry, index) => (
-            <div key={index} className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
+            <div key={index} className="space-y-3 rounded-lg border border-neutral-200 bg-white shadow-sm p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-neutral-700">Task {index + 1}</p>
                 {entries.length > 1 && (
@@ -258,7 +258,7 @@ export function TaskReportForm({
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+              className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
             >
               {isPending ? "Saving…" : "Submit"}
             </button>

@@ -26,7 +26,7 @@ export default async function PolicyViewerPage({
       <iframe
         src={policy.embedUrl}
         title={policy.title}
-        className="w-full flex-1 rounded-lg border border-neutral-200 bg-white"
+        className="w-full flex-1 rounded-lg border border-neutral-200 bg-white shadow-sm"
       />
     </div>
   );

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-guards";
-import { countWeekdays } from "@/lib/leave";
+import { countLeaveDays } from "@/lib/leave";
 import { notifyLeaveSubmitted } from "@/lib/notifications/leave";
 
 const leaveRequestSchema = z
@@ -44,7 +44,7 @@ export async function createLeaveRequest(formData: FormData): Promise<ActionResu
 
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const daysCount = countWeekdays(start, end);
+  const daysCount = await countLeaveDays(start, end);
 
   const created = await prisma.leaveRequest.create({
     data: {
@@ -96,7 +96,7 @@ export async function updateLeaveRequest(
 
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const daysCount = countWeekdays(start, end);
+  const daysCount = await countLeaveDays(start, end);
 
   await prisma.leaveRequest.update({
     where: { id },

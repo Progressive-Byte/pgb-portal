@@ -38,7 +38,7 @@ export function LeaveOverridesForm({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
+    <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm">
       {error && (
         <p className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
           {error}
@@ -81,7 +81,7 @@ export function LeaveOverridesForm({
                   <button
                     type="submit"
                     disabled={isPending && savingId === row.leaveTypeId}
-                    className="rounded-md bg-neutral-900 px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
+                    className="rounded-md bg-emerald-700 px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
                   >
                     Save
                   </button>

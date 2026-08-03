@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-guards";
+import { getLeaveBalanceSummary } from "@/lib/leave";
 import { LeaveRequestForm } from "@/components/leave/leave-request-form";
 
 export default async function EditLeaveRequestPage({
@@ -11,13 +12,14 @@ export default async function EditLeaveRequestPage({
   const { id } = await params;
   const session = await requireUser();
 
-  const [leaveTypes, request] = await Promise.all([
+  const [leaveTypes, request, balances] = await Promise.all([
     prisma.leaveType.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
     prisma.leaveRequest.findUnique({ where: { id } }),
+    getLeaveBalanceSummary(session.user.id, new Date().getFullYear()),
   ]);
 
   if (!request || request.userId !== session.user.id || request.status !== "PENDING") {
@@ -33,6 +35,7 @@ export default async function EditLeaveRequestPage({
 
       <LeaveRequestForm
         leaveTypes={leaveTypes}
+        balances={balances}
         requestId={request.id}
         initialValues={{
           leaveTypeId: request.leaveTypeId,

@@ -42,7 +42,7 @@ export function UsersTable({ users }: { users: UserRow[] }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
+    <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm">
       {error && (
         <p className="border-b border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
           {error}

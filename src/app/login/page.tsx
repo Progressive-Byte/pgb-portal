@@ -36,8 +36,11 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">
-      <div className="w-full max-w-sm rounded-lg border border-neutral-200 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-emerald-50 via-neutral-50 to-neutral-50 px-4">
+      <div className="w-full max-w-sm rounded-lg border border-neutral-200 bg-white shadow-sm p-8">
+        <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 text-base font-bold text-white">
+          P
+        </span>
         <h1 className="mb-1 text-xl font-semibold text-neutral-900">
           PGB Portal
         </h1>
@@ -63,7 +66,7 @@ function LoginForm() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+              className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
             />
           </div>
 
@@ -78,7 +81,7 @@ function LoginForm() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+              className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
             />
           </div>
 
@@ -87,7 +90,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+            className="w-full rounded-md bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
           >
             {submitting ? "Signing in…" : "Sign in"}
           </button>

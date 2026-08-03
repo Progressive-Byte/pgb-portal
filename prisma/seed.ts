@@ -1,6 +1,7 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { prisma } from "../src/lib/prisma";
+import { getWorkweekConfig, isWorkday, type WorkweekConfig } from "../src/lib/workweek";
 
 const DEFAULT_LEAVE_TYPES = [
   { name: "Casual", defaultAnnualDays: 10 },
@@ -56,19 +57,14 @@ function toUtcDate(d: Date) {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
-function isWeekday(d: Date) {
-  const day = d.getUTCDay();
-  return day !== 0 && day !== 6;
-}
-
-/** Steps `count` weekdays forward (negative = backward) from `start`. */
-function addWeekdays(start: Date, count: number): Date {
+/** Steps `count` workdays forward (negative = backward) from `start`, per the configured weekend pattern. */
+function addWorkdays(start: Date, count: number, config: WorkweekConfig): Date {
   const d = toUtcDate(start);
   const step = count >= 0 ? 1 : -1;
   let remaining = Math.abs(count);
   while (remaining > 0) {
     d.setUTCDate(d.getUTCDate() + step);
-    if (isWeekday(d)) remaining--;
+    if (isWorkday(d, config)) remaining--;
   }
   return d;
 }
@@ -119,11 +115,15 @@ async function main() {
     );
   }
 
+  const config = await getWorkweekConfig();
   const today = toUtcDate(new Date());
-  const reportRangeEnd = isWeekday(today) ? addWeekdays(today, -1) : addWeekdays(today, 0);
-  const reportRangeStart = addWeekdays(reportRangeEnd, -19); // ~4 weeks of workdays
+  // Leave "today" itself unfilled (demonstrates live missing-report behavior);
+  // cover all of last month plus this month-to-date so either month picker
+  // selection shows a fully populated view.
+  const reportRangeEnd = addWorkdays(today, -1, config);
+  const reportRangeStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1));
 
-  const holidayDate = addWeekdays(reportRangeStart, 8);
+  const holidayDate = addWorkdays(reportRangeStart, 8, config);
   await prisma.holiday.upsert({
     where: { date: holidayDate },
     update: {},
@@ -155,7 +155,7 @@ async function main() {
           passwordHash: demoPasswordHash,
           role: "EMPLOYEE",
           status: "ACTIVE",
-          joinDate: addWeekdays(reportRangeStart, -40),
+          joinDate: addWorkdays(reportRangeStart, -40, config),
         },
       }),
     );
@@ -173,9 +173,9 @@ async function main() {
     const emp = employees[i];
 
     // One approved single-day leave, spread across the report window, avoiding the holiday.
-    let approvedDate = addWeekdays(reportRangeStart, 2 + i * 3);
+    let approvedDate = addWorkdays(reportRangeStart, 2 + i * 3, config);
     if (isoDate(approvedDate) === isoDate(holidayDate)) {
-      approvedDate = addWeekdays(approvedDate, 1);
+      approvedDate = addWorkdays(approvedDate, 1, config);
     }
     approvedLeaveByEmployee.set(emp.id, isoDate(approvedDate));
 
@@ -189,16 +189,16 @@ async function main() {
         reason: "Personal errand",
         status: "APPROVED",
         reviewedBy: admin.id,
-        reviewedAt: addWeekdays(approvedDate, -1),
+        reviewedAt: addWorkdays(approvedDate, -1, config),
         reviewNote: "Approved.",
-        createdAt: addWeekdays(approvedDate, -2),
+        createdAt: addWorkdays(approvedDate, -2, config),
       },
     });
     leaveRequestsCreated++;
 
     // One pending request for an upcoming date, for the admin queue to show.
-    const pendingStart = addWeekdays(today, 4 + i * 2);
-    const pendingEnd = addWeekdays(pendingStart, 1);
+    const pendingStart = addWorkdays(today, 4 + i * 2, config);
+    const pendingEnd = addWorkdays(pendingStart, 1, config);
     await prisma.leaveRequest.create({
       data: {
         userId: emp.id,
@@ -214,7 +214,7 @@ async function main() {
 
     // A rejected request for variety, on alternating employees.
     if (i % 2 === 0) {
-      const rejectedDate = addWeekdays(reportRangeStart, -5 - i);
+      const rejectedDate = addWorkdays(reportRangeStart, -5 - i, config);
       await prisma.leaveRequest.create({
         data: {
           userId: emp.id,
@@ -225,9 +225,9 @@ async function main() {
           reason: "Wanted a long weekend",
           status: "REJECTED",
           reviewedBy: admin.id,
-          reviewedAt: addWeekdays(rejectedDate, 1),
+          reviewedAt: addWorkdays(rejectedDate, 1, config),
           reviewNote: "Too many overlapping requests that week.",
-          createdAt: addWeekdays(rejectedDate, -1),
+          createdAt: addWorkdays(rejectedDate, -1, config),
         },
       });
       leaveRequestsCreated++;
@@ -240,11 +240,11 @@ async function main() {
   for (let i = 0; i < employees.length; i++) {
     const emp = employees[i];
     const leaveDate = approvedLeaveByEmployee.get(emp.id);
-    const gapStart = i < 2 ? addWeekdays(reportRangeEnd, -2) : null;
+    const gapStart = i < 2 ? addWorkdays(reportRangeEnd, -2, config) : null;
 
     const cursor = toUtcDate(reportRangeStart);
     while (cursor <= reportRangeEnd) {
-      if (isWeekday(cursor)) {
+      if (isWorkday(cursor, config)) {
         const dateStr = isoDate(cursor);
         const inGap = gapStart !== null && cursor >= gapStart;
         const onLeave = dateStr === leaveDate;

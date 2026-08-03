@@ -30,18 +30,18 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Link
           href="/admin/leave-requests"
-          className="rounded-lg border border-neutral-200 bg-white p-4 hover:bg-neutral-50"
+          className="rounded-lg border border-neutral-200 bg-white shadow-sm p-4 hover:bg-neutral-50"
         >
           <p className="text-sm font-medium text-neutral-500">Pending leave requests</p>
           <p className="mt-1 text-3xl font-semibold text-neutral-900">{pendingCount}</p>
         </Link>
-        <div className="rounded-lg border border-neutral-200 bg-white p-4">
+        <div className="rounded-lg border border-neutral-200 bg-white shadow-sm p-4">
           <p className="text-sm font-medium text-neutral-500">Active employees</p>
           <p className="mt-1 text-3xl font-semibold text-neutral-900">{employeeCount}</p>
         </div>
         <Link
           href="/admin/reports"
-          className="rounded-lg border border-neutral-200 bg-white p-4 hover:bg-neutral-50"
+          className="rounded-lg border border-neutral-200 bg-white shadow-sm p-4 hover:bg-neutral-50"
         >
           <p className="text-sm font-medium text-neutral-500">Missing reports today</p>
           <p className="mt-1 text-3xl font-semibold text-neutral-900">{missingToday.length}</p>
@@ -52,7 +52,7 @@ export default async function AdminDashboardPage() {
         <h2 className="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">
           On leave today
         </h2>
-        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
           {onLeaveToday.map((lr) => (
             <div
               key={lr.id}

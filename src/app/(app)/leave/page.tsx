@@ -38,7 +38,7 @@ export default async function LeavePage() {
         </div>
         <Link
           href="/leave/new"
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
         >
           New leave request
         </Link>

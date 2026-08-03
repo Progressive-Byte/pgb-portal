@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getWorkweekConfig, listWorkdays } from "@/lib/workweek";
 
 export type DayExcuseReason = "leave" | "holiday" | null;
 
@@ -36,26 +37,18 @@ export function isFutureDate(date: Date | string) {
   return day > today;
 }
 
-function listWeekdays(from: Date, to: Date): Date[] {
-  const days: Date[] = [];
-  const cursor = new Date(from);
-  while (cursor <= to) {
-    const dow = cursor.getUTCDay();
-    if (dow !== 0 && dow !== 6) {
-      days.push(new Date(cursor));
-    }
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
-  }
-  return days;
-}
-
 export type MissingReportRow = {
   userId: string;
   name: string;
   missingDates: string[];
 };
 
-/** Active employees' workdays in [from, to] (capped at today) with no report, no holiday, no approved leave. */
+/**
+ * Active employees' workdays in [from, to] (capped at today) with no report, no
+ * holiday, and no leave request covering them. A PENDING (not just APPROVED)
+ * leave request also counts as "covered" — filing one resolves the nag even
+ * before admin approval; a later REJECTED/CANCELLED request brings the day back.
+ */
 export async function getMissingReportSummary(
   from: Date,
   to: Date,
@@ -66,11 +59,16 @@ export async function getMissingReportSummary(
 
   if (rangeStart > rangeEnd) return [];
 
-  const [employees, holidays, leaveRequests, reports] = await Promise.all([
+  const [config, employees, holidays, leaveRequests, reports] = await Promise.all([
+    getWorkweekConfig(),
     prisma.user.findMany({ where: { role: "EMPLOYEE", status: "ACTIVE" } }),
     prisma.holiday.findMany({ where: { date: { gte: rangeStart, lte: rangeEnd } } }),
     prisma.leaveRequest.findMany({
-      where: { status: "APPROVED", startDate: { lte: rangeEnd }, endDate: { gte: rangeStart } },
+      where: {
+        status: { in: ["APPROVED", "PENDING"] },
+        startDate: { lte: rangeEnd },
+        endDate: { gte: rangeStart },
+      },
     }),
     prisma.taskReport.findMany({
       where: { date: { gte: rangeStart, lte: rangeEnd } },
@@ -93,7 +91,7 @@ export async function getMissingReportSummary(
     leaveByUser.get(lr.userId)!.push({ start: lr.startDate, end: lr.endDate });
   }
 
-  const workdays = listWeekdays(rangeStart, rangeEnd);
+  const workdays = listWorkdays(rangeStart, rangeEnd, config);
 
   return employees
     .map((emp) => {
@@ -117,6 +115,55 @@ export async function getMissingReportSummary(
     .filter((row) => row.missingDates.length > 0);
 }
 
+/** Same "covered" rule as getMissingReportSummary, scoped to one employee. */
+export async function getMissingDaysForUser(
+  userId: string,
+  from: Date,
+  to: Date,
+): Promise<string[]> {
+  const today = toUtcDate(new Date());
+  const rangeEnd = to > today ? today : to;
+  const rangeStart = toUtcDate(from);
+
+  if (rangeStart > rangeEnd) return [];
+
+  const [config, user, holidays, leaveRequests, reports] = await Promise.all([
+    getWorkweekConfig(),
+    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.holiday.findMany({ where: { date: { gte: rangeStart, lte: rangeEnd } } }),
+    prisma.leaveRequest.findMany({
+      where: {
+        userId,
+        status: { in: ["APPROVED", "PENDING"] },
+        startDate: { lte: rangeEnd },
+        endDate: { gte: rangeStart },
+      },
+    }),
+    prisma.taskReport.findMany({
+      where: { userId, date: { gte: rangeStart, lte: rangeEnd } },
+      select: { date: true },
+    }),
+  ]);
+
+  if (!user) return [];
+
+  const holidaySet = new Set(holidays.map((h) => h.date.toISOString().slice(0, 10)));
+  const reportedDates = new Set(reports.map((r) => r.date.toISOString().slice(0, 10)));
+  const joinDate = toUtcDate(user.joinDate);
+  const workdays = listWorkdays(rangeStart, rangeEnd, config);
+
+  return workdays
+    .filter((day) => day >= joinDate)
+    .filter((day) => {
+      const key = day.toISOString().slice(0, 10);
+      if (holidaySet.has(key)) return false;
+      if (reportedDates.has(key)) return false;
+      if (leaveRequests.some((l) => day >= l.startDate && day <= l.endDate)) return false;
+      return true;
+    })
+    .map((day) => day.toISOString().slice(0, 10));
+}
+
 export type HoursOverview = {
   byEmployee: { userId: string; name: string; hours: number }[];
   byProject: { name: string; hours: number }[];
@@ -125,9 +172,16 @@ export type HoursOverview = {
   totalHours: number;
 };
 
-export async function getHoursOverview(from: Date, to: Date): Promise<HoursOverview> {
+export async function getHoursOverview(
+  from: Date,
+  to: Date,
+  userId?: string,
+): Promise<HoursOverview> {
   const reports = await prisma.taskReport.findMany({
-    where: { date: { gte: toUtcDate(from), lte: toUtcDate(to) } },
+    where: {
+      date: { gte: toUtcDate(from), lte: toUtcDate(to) },
+      ...(userId ? { userId } : {}),
+    },
     include: { user: true, project: true, taskType: true },
   });
 
@@ -167,4 +221,33 @@ export async function getHoursOverview(from: Date, to: Date): Promise<HoursOverv
       .sort((a, b) => a.date.localeCompare(b.date)),
     totalHours,
   };
+}
+
+export type MonthlyHours = { month: string; hours: number };
+
+/** Total hours per calendar month for one user, most recent `monthsBack` months. */
+export async function getMonthlyHoursForUser(
+  userId: string,
+  monthsBack: number,
+): Promise<MonthlyHours[]> {
+  const today = toUtcDate(new Date());
+  const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - (monthsBack - 1), 1));
+
+  const reports = await prisma.taskReport.findMany({
+    where: { userId, date: { gte: start } },
+    select: { date: true, hoursWorked: true },
+  });
+
+  const byMonth = new Map<string, number>();
+  for (let i = 0; i < monthsBack; i++) {
+    const d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i, 1));
+    byMonth.set(d.toISOString().slice(0, 7), 0);
+  }
+
+  for (const r of reports) {
+    const key = r.date.toISOString().slice(0, 7);
+    byMonth.set(key, (byMonth.get(key) ?? 0) + Number(r.hoursWorked));
+  }
+
+  return [...byMonth.entries()].map(([month, hours]) => ({ month, hours }));
 }

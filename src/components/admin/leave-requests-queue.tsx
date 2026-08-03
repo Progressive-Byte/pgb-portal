@@ -48,7 +48,7 @@ export function LeaveRequestsQueue({ requests }: { requests: PendingRequest[] })
       {requests.map((req) => {
         const rowPending = isPending && pendingId === req.id;
         return (
-          <div key={req.id} className="rounded-lg border border-neutral-200 bg-white p-4">
+          <div key={req.id} className="rounded-lg border border-neutral-200 bg-white shadow-sm p-4">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <Link
@@ -93,7 +93,7 @@ export function LeaveRequestsQueue({ requests }: { requests: PendingRequest[] })
         );
       })}
       {requests.length === 0 && (
-        <p className="rounded-lg border border-neutral-200 bg-white px-4 py-6 text-center text-neutral-400">
+        <p className="rounded-lg border border-neutral-200 bg-white shadow-sm px-4 py-6 text-center text-neutral-400">
           No pending leave requests.
         </p>
       )}

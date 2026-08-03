@@ -51,7 +51,7 @@ function EditRow({ type, onDone }: { type: LeaveType; onDone: () => void }) {
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-md bg-neutral-900 px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-emerald-700 px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
           >
             Save
           </button>
@@ -97,7 +97,7 @@ export function LeaveTypesManager({ leaveTypes }: { leaveTypes: LeaveType[] }) {
     <div className="space-y-4">
       <form
         action={handleCreate}
-        className="flex flex-wrap items-end gap-3 rounded-lg border border-neutral-200 bg-white p-4"
+        className="flex flex-wrap items-end gap-3 rounded-lg border border-neutral-200 bg-white shadow-sm p-4"
       >
         <div>
           <label className="block text-sm font-medium text-neutral-700">Name</label>
@@ -122,7 +122,7 @@ export function LeaveTypesManager({ leaveTypes }: { leaveTypes: LeaveType[] }) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+          className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
         >
           Add leave type
         </button>
@@ -134,7 +134,7 @@ export function LeaveTypesManager({ leaveTypes }: { leaveTypes: LeaveType[] }) {
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
+      <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-neutral-200 text-sm">
           <thead className="bg-neutral-50 text-left text-neutral-500">
             <tr>

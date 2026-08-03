@@ -1,24 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { getWorkweekConfig, countWorkdays } from "@/lib/workweek";
 
-/** Counts Mon–Fri days between two dates, inclusive. */
-export function countWeekdays(start: Date, end: Date): number {
-  let count = 0;
-  const cursor = new Date(
-    Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()),
-  );
-  const last = new Date(
-    Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()),
-  );
-
-  while (cursor <= last) {
-    const day = cursor.getUTCDay();
-    if (day !== 0 && day !== 6) {
-      count++;
-    }
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
-  }
-
-  return count;
+/** Counts working days (per the configured weekend pattern) between two dates, inclusive. */
+export async function countLeaveDays(start: Date, end: Date): Promise<number> {
+  const config = await getWorkweekConfig();
+  return countWorkdays(start, end, config);
 }
 
 export type LeaveBalanceSummary = {
