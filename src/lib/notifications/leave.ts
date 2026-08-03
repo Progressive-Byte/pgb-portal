@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendMail, escapeHtml } from "@/lib/mail";
-import { sendPumbleMessage } from "@/lib/pumble";
+import { sendPumbleMessage, formatPumbleMentions } from "@/lib/pumble";
 
 type LeaveRequestForNotify = {
   id: string;
@@ -34,9 +34,11 @@ export async function notifyLeaveSubmitted(request: LeaveRequestForNotify) {
     admins.map((admin) => sendMail({ to: admin.email, subject, html })),
   );
 
+  const mentions = formatPumbleMentions(process.env.PUMBLE_HR_ADMIN_MENTION_IDS);
+  const mentionPrefix = mentions ? `${mentions} ` : "";
   await sendPumbleMessage(
     process.env.PUMBLE_WEBHOOK_HR_ADMIN,
-    `📋 *${request.user.name}* submitted a *${request.leaveType.name}* leave request for ${dateRange} (${request.daysCount} day${request.daysCount === 1 ? "" : "s"}). Reason: ${request.reason}`,
+    `${mentionPrefix}📋 *${request.user.name}* submitted a *${request.leaveType.name}* leave request for ${dateRange} (${request.daysCount} day${request.daysCount === 1 ? "" : "s"}). Reason: ${request.reason}`,
   );
 }
 

@@ -115,6 +115,17 @@ async function main() {
     );
   }
 
+  // Demo/sample data (fake employees, placeholder holiday, placeholder policy docs)
+  // is on by default for local dev but must be skipped for a real deployment.
+  const seedDemoData = process.env.SEED_DEMO_DATA !== "false";
+
+  if (!seedDemoData) {
+    console.log("SEED_DEMO_DATA=false — skipping demo employees, holiday, and policy docs.");
+    console.log(`Seeded admin user: ${admin.email}`);
+    console.log(`Seeded ${DEFAULT_LEAVE_TYPES.length} leave types, ${taskTypes.length} task types, ${projects.length} projects.`);
+    return;
+  }
+
   const config = await getWorkweekConfig();
   const today = toUtcDate(new Date());
   // Leave "today" itself unfilled (demonstrates live missing-report behavior);
