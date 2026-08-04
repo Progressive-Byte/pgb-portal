@@ -64,6 +64,43 @@ export default async function AdminLeaveOverviewPage({
         </div>
       </div>
 
+      <form
+        action="/api/admin/leave-export"
+        method="get"
+        className="flex flex-wrap items-end gap-3 rounded-lg border border-neutral-200 bg-white shadow-sm p-4"
+      >
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">From</label>
+          <input
+            type="date"
+            name="from"
+            defaultValue={`${year}-01-01`}
+            required
+            className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">To</label>
+          <input
+            type="date"
+            name="to"
+            defaultValue={`${year}-12-31`}
+            required
+            className="mt-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <button
+          type="submit"
+          className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
+        >
+          Export to Excel
+        </button>
+        <p className="w-full text-xs text-neutral-400">
+          Downloads an .xlsx with a summary matrix and a full per-request detail sheet
+          (all statuses) for the selected range.
+        </p>
+      </form>
+
       <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-neutral-200 text-sm">
           <thead className="bg-neutral-50 text-left text-neutral-500">
